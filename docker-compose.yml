@@ -1,0 +1,90 @@
+services:
+  traefik:
+    image: traefik:v3.6.2  # v3.5.2 incompatible Docker Engine >= 29 (API 1.24 refusée)
+    container_name: traefik-1
+    ports:
+      - "80:80"
+      - "443:443"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./config/dynamic:/etc/traefik/dynamic:ro
+      - ./secrets/tls:/etc/traefik/tls:ro
+    command:
+      - "--configFile=/etc/traefik/traefik.yaml"
+    networks:
+      - frontend
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  app1:
+    image: nginx:stable
+    container_name: nginx-app1
+    volumes:
+      - ./app1:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app1.rule=Host(`app1.localhost`)"
+      - "traefik.http.routers.app1.entrypoints=web"
+      - "traefik.http.routers.app1.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.app1-secure.rule=Host(`app1.localhost`)"
+      - "traefik.http.routers.app1-secure.entrypoints=websecure"
+      - "traefik.http.routers.app1-secure.tls=true"
+      - "traefik.http.routers.app1-secure.service=app1"
+      - "traefik.http.routers.app1-secure.middlewares=security-headers@file"
+      - "traefik.http.services.app1.loadbalancer.server.port=80"
+      - "traefik.http.services.app1.loadbalancer.healthcheck.path=/"
+      - "traefik.http.services.app1.loadbalancer.healthcheck.interval=5s"
+      - "traefik.http.services.app1.loadbalancer.healthcheck.timeout=2s"
+    networks:
+      - frontend
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  app2:
+    image: nginx:stable
+    container_name: nginx-app2
+    volumes:
+      - ./app2:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app2.rule=Host(`app2.localhost`)"
+      - "traefik.http.routers.app2.entrypoints=web"
+      - "traefik.http.services.app2.loadbalancer.server.port=80"
+    networks:
+      - frontend
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  app1b:
+    image: nginx:stable
+    container_name: nginx-app1b
+    volumes:
+      - ./app1b:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app1.rule=Host(`app1.localhost`)"
+      - "traefik.http.routers.app1.entrypoints=web"
+      - "traefik.http.routers.app1.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.app1-secure.rule=Host(`app1.localhost`)"
+      - "traefik.http.routers.app1-secure.entrypoints=websecure"
+      - "traefik.http.routers.app1-secure.tls=true"
+      - "traefik.http.routers.app1-secure.service=app1"
+      - "traefik.http.routers.app1-secure.middlewares=security-headers@file"
+      - "traefik.http.services.app1.loadbalancer.server.port=80"
+      - "traefik.http.services.app1.loadbalancer.healthcheck.path=/"
+      - "traefik.http.services.app1.loadbalancer.healthcheck.interval=5s"
+      - "traefik.http.services.app1.loadbalancer.healthcheck.timeout=2s"
+    networks:
+      - frontend
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+networks:
+  frontend:
+    external: true

@@ -1,0 +1,6 @@
+# Clés privées, CA et certificats : jamais dans le dépôt
+secrets/
+*.key
+*.pem
+.env
+acme.json

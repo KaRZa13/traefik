@@ -1,0 +1,22 @@
+# Configuration DYNAMIQUE (provider file) : TLS + middlewares partagés
+tls:
+  certificates:
+    - certFile: /etc/traefik/tls/lab.crt
+      keyFile: /etc/traefik/tls/lab.key
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: true
+
+http:
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    security-headers:
+      headers:
+        contentTypeNosniff: true
+        frameDeny: true
+        referrerPolicy: "no-referrer"
+        # HSTS volontairement absent : à n'activer que lorsque le HTTPS est durable

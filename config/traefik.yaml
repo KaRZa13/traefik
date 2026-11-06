@@ -1,0 +1,21 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+log:
+  level: INFO          # DEBUG réservé au diagnostic temporaire
+api:
+  dashboard: true
+  insecure: true       # laboratoire uniquement, port 8080 lié à 127.0.0.1
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: frontend
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
